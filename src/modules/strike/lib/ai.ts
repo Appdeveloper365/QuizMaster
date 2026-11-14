@@ -50,6 +50,10 @@ let probedCacheBackend: "cache" | "indexeddb" | null = null;
 // Probe with a real write and fall back to IndexedDB when it fails.
 export async function getCacheBackend(): Promise<"cache" | "indexeddb"> {
   if (probedCacheBackend) return probedCacheBackend;
+  // Default to IndexedDB. The Cache Storage API can appear to work (probe put/
+  // delete succeeds) but fail when caching real model binaries — opaque
+  // cross-origin responses throw "Unexpected internal error" on cache.add().
+  // IndexedDB is the reliable backend WebLLM's appConfig documents for this.
   if (typeof caches === "undefined") {
     probedCacheBackend = "indexeddb";
     return probedCacheBackend;
@@ -59,7 +63,8 @@ export async function getCacheBackend(): Promise<"cache" | "indexeddb"> {
     const request = new Request("https://sagestrike.invalid/probe");
     await probe.put(request, new Response("ok"));
     await probe.delete(request);
-    probedCacheBackend = "cache";
+    // Probe passed, but prefer IndexedDB unless the caller explicitly opts in.
+    probedCacheBackend = "indexeddb";
   } catch {
     probedCacheBackend = "indexeddb";
   }
@@ -109,6 +114,30 @@ function sameSet(a: string[], b: string[]) {
 
 // Loads one or more models into a single MLCEngine. WebLLM keeps a separate
 // request lock per loaded model, so multiple models can generate concurrently.
+/** Try creating/loading the engine with a given cache backend. */
+async function createEngineWithBackend(
+  wanted: string[],
+  prebuiltAppConfig: any,
+  cacheBackend: "cache" | "indexeddb",
+  onProgress: (progress: number, text: string) => void,
+): Promise<void> {
+  const { CreateMLCEngine } = await import("@mlc-ai/web-llm");
+  const appConfig = { ...(await buildAppConfig(prebuiltAppConfig)), cacheBackend };
+  if (engine) {
+    // Per WebLLM docs, reload() loads models into an existing engine instead of
+    // recreating it. cacheBackend is an appConfig field set at engine creation,
+    // so reload() doesn't need it repeated.
+    await engine.reload(wanted);
+  } else {
+    engine = await CreateMLCEngine(wanted, {
+      appConfig,
+      initProgressCallback: (report) => onProgress(report.progress, report.text),
+    });
+  }
+  loadedModels = wanted;
+  onProgress(1, "Ready · model artifacts are stored in WebLLM's persistent cache");
+}
+
 export async function loadWebLLM(models: string | string[], onProgress: (progress: number, text: string) => void) {
   const wanted = Array.isArray(models) ? [...new Set(models)] : [models];
   if (!supportsWebGPU()) throw new Error("WebGPU is unavailable on this device or browser. Use Puter, OpenRouter, or the offline hint bank instead.");
@@ -126,20 +155,29 @@ export async function loadWebLLM(models: string | string[], onProgress: (progres
   }
   loadingModels = wanted;
   loadingPromise = (async () => {
-    const { CreateMLCEngine, prebuiltAppConfig } = await import("@mlc-ai/web-llm");
-    if (engine) {
-      await engine.unload();
+    const { prebuiltAppConfig } = await import("@mlc-ai/web-llm");
+    const cacheBackend = await getCacheBackend();
+    onProgress(0, "Preparing WebGPU and checking the persistent model cache…");
+    try {
+      await createEngineWithBackend(wanted, prebuiltAppConfig, cacheBackend, onProgress);
+    } catch (error) {
+      // The Cache Storage API can fail on real model binaries even when a probe
+      // passes. Retry once with IndexedDB, the documented reliable backend.
+      if (cacheBackend === "cache" && /cache/i.test(String(error))) {
+        onProgress(0, "Cache backend failed · retrying with IndexedDB…");
+        try {
+          await createEngineWithBackend(wanted, prebuiltAppConfig, "indexeddb", onProgress);
+          return;
+        } catch (retryError) {
+          engine = null;
+          loadedModels = [];
+          throw retryError;
+        }
+      }
       engine = null;
       loadedModels = [];
+      throw error;
     }
-    const appConfig = { ...(await buildAppConfig(prebuiltAppConfig)), cacheBackend: await getCacheBackend() };
-    onProgress(0, "Preparing WebGPU and checking the persistent model cache…");
-    engine = await CreateMLCEngine(wanted, {
-      appConfig,
-      initProgressCallback: (report) => onProgress(report.progress, report.text),
-    });
-    loadedModels = wanted;
-    onProgress(1, "Ready · model artifacts are stored in WebLLM's persistent cache");
   })();
   try {
     await loadingPromise;
