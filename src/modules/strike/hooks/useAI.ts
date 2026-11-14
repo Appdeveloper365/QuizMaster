@@ -21,6 +21,7 @@ import { fetchInternetResearch } from "../lib/internetResearch";
 import {
   advanceToNext,
   bufferedCount,
+  configureRelayPipeline,
   currentQuestion,
   nextQuestion,
   isGeneratingNext,
@@ -187,6 +188,20 @@ export function useAI() {
     facetIndex = 0
   ): Promise<Question> => {
     if (settings.provider === "webllm") {
+      // Align the relay pipeline with the current subject/difficulty before
+      // reading from it. Without this, advanceToNext() can promote a question
+      // that was pre-generated for a different subject, recycling stale content.
+      const persisted = loadAskedPrompts();
+      const exclude = [...new Set([...excludePrompts, ...persisted])];
+      configureRelayPipeline({
+        subject,
+        difficulty,
+        excludePrompts: exclude,
+        facetIndex,
+        primaryModel: settings.webllmModel,
+        research: null,
+      });
+
       // A question is already waiting from the relay pipeline — deliver it instantly and refill.
       const pregenerated = advanceToNext();
       if (pregenerated) return pregenerated;
@@ -197,8 +212,6 @@ export function useAI() {
       setGenerationStage("Consulting curated sources (encyclopedia, dictionaries, atlas)…");
       try {
         const requireInternet = true;
-        const persisted = loadAskedPrompts();
-        const exclude = [...new Set([...excludePrompts, ...persisted])];
         let research = null;
         try {
           research = await fetchInternetResearch(subject);
@@ -292,8 +305,14 @@ export function useAI() {
   const repeatPreviousQuestion = useCallback(async (
     previous: QuestionHistoryItem,
     difficulty: Difficulty,
-    excludePrompts: string[] = []
+    excludePrompts: string[] = [],
+    facetIndex = 0
   ): Promise<Question> => {
+    // Clear any stale relay-pipeline state left from "new" mode generation so
+    // a subsequent switch back to "new" mode can't serve a pre-generated
+    // question from a different subject.
+    resetRelayPipeline();
+
     setBusy(true);
     setError("");
     setGenerationStage("Re-generating previous question with fresh wording…");
@@ -304,9 +323,10 @@ export function useAI() {
       const exclude = [...new Set([...excludePrompts, ...persisted, previous.prompt])];
       const avoidFactKeys = [...new Set(loadSubjectFacts(subject))];
 
-      // Use a different facet index to force a different angle/subtopic.
-      const shift = 100 + Date.now() % QUESTION_ASPECTS.length;
-      const aspect = QUESTION_ASPECTS[shift % QUESTION_ASPECTS.length];
+      // Use a deterministic facet index so consecutive repeats always take a
+      // different angle/subtopic instead of potentially colliding on Date.now().
+      const shift = facetIndex % QUESTION_ASPECTS.length;
+      const aspect = QUESTION_ASPECTS[shift];
       const related = research.relatedTerms.filter((term) => term.toLocaleLowerCase() !== subject.toLocaleLowerCase());
       const focus = related.length ? related[shift % related.length] : undefined;
       const steer = {
@@ -381,7 +401,7 @@ export function useAI() {
       // or we look up from history. For now, fall back to new generation if no previous is available.
       const history = loadQuestionHistory();
       if (history.length > 0) {
-        return repeatPreviousQuestion(history[0], difficulty, excludePrompts);
+        return repeatPreviousQuestion(history[0], difficulty, excludePrompts, facetIndex);
       }
       // No history — fall through to new generation.
     }
