@@ -77,13 +77,16 @@ export function useAI() {
     setPuterChecked(true);
   }, []);
 
-  const preload = useCallback(async (model = settings.webllmModel) => {
+  const preload = useCallback(async (model = settings.webllmModel, opts?: { dual?: boolean }) => {
     if (!supportsWebGPU()) {
       const message = "WebGPU is unavailable on this device or browser. Use Puter, OpenRouter, or the offline hint bank instead.";
       setProgress({ status: "unsupported", progress: 0, text: message, model });
       throw new Error(message);
     }
-    const models = settings.webllmDual && model === settings.webllmModel && model !== WEBLLM_FAST_MODEL ? [WEBLLM_FAST_MODEL, model] : [model];
+    // Callers that just changed settings pass the fresh value explicitly —
+    // this callback still closes over the previous render's `settings`.
+    const dual = opts?.dual ?? settings.webllmDual;
+    const models = dual && model !== WEBLLM_FAST_MODEL ? [WEBLLM_FAST_MODEL, model] : [model];
     loadingRef.current = true;
     setError("");
     setProgress({ status: "loading", progress: 0, text: models.length > 1 ? `Checking cache for ${models.length} models…` : "Checking the local model cache…", model });

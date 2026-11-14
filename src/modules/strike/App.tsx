@@ -241,11 +241,12 @@ export default function App({ onBack }: AppProps) {
                     type="checkbox"
                     checked={ai.settings.webllmDual}
                     onChange={(event) => {
-                      ai.updateSettings({ webllmDual: event.target.checked });
-                      void ai.preload(ai.settings.webllmModel).catch(() => undefined);
+                      const dual = event.target.checked;
+                      ai.updateSettings({ webllmDual: dual });
+                      void ai.preload(ai.settings.webllmModel, { dual }).catch(() => undefined);
                     }}
                   />
-                  Dual-model rapid generation (fast 0.8B + strong model race each other)
+                  Dual-model generation (fast 0.8B + strong model alternate questions)
                 </label>
                 {/* Relay pipeline status */}
                 <div className="mini-pipeline-status">
