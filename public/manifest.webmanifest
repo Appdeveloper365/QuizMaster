@@ -1,0 +1,15 @@
+{
+  "name": "QuizMaster — AI Quiz Arena",
+  "short_name": "QuizMaster",
+  "description": "An AI quiz arena with a tactical campaign (SageStrike) and an on-device arena (BrainForge), grounded in live sources.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#10131b",
+  "theme_color": "#10131b",
+  "orientation": "any",
+  "icons": [
+    { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" },
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}

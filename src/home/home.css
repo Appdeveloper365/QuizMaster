@@ -1,0 +1,406 @@
+/*
+ * QuizMaster — shared base styles.
+ *
+ * This is the single file that loads Tailwind (one @import "tailwindcss").
+ * Each module keeps its own scoped @theme (see ../modules/strike/index.css and
+ * ../modules/forge/index.css) wrapped in its own wrapper class, so the two
+ * modules' --font-display and background resets no longer collide globally.
+ */
+@import "tailwindcss";
+
+/* Neutral base resets (moved out of the individual module CSS so they cannot
+   fight each other between modules). */
+:root {
+  color-scheme: light dark;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+}
+* {
+  box-sizing: border-box;
+}
+html {
+  scroll-behavior: smooth;
+}
+body {
+  margin: 0;
+  min-width: 320px;
+}
+button,
+input,
+select {
+  font: inherit;
+}
+button {
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+button:disabled {
+  cursor: not-allowed;
+}
+button:focus-visible,
+input:focus-visible,
+select:focus-visible {
+  outline: 3px solid rgba(118, 153, 28, .35);
+  outline-offset: 3px;
+}
+::selection {
+  background: #d9ff63;
+  color: #171a15;
+}
+
+/* ── Home shell ─────────────────────────────────────────────── */
+.quizhome {
+  min-height: 100vh;
+  min-height: 100dvh;
+  background:
+    radial-gradient(circle at 8% 0%, rgba(217, 255, 99, .12), transparent 30rem),
+    #10131b;
+  color: #e8eef0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+}
+
+.quizhome-head {
+  text-align: center;
+  margin-bottom: 40px;
+  max-width: 640px;
+}
+.quizhome-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .28em;
+  text-transform: uppercase;
+  color: #d9ff63;
+  margin-bottom: 14px;
+}
+.quizhome-kicker svg {
+  color: #d9ff63;
+}
+.quizhome-title {
+  font-family: var(--font-display);
+  font-size: clamp(2.4rem, 6vw, 4.2rem);
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -.05em;
+  margin: 0 0 14px;
+}
+.quizhome-title span {
+  color: #d9ff63;
+}
+.quizhome-sub {
+  font-size: 15px;
+  line-height: 1.6;
+  color: rgba(232, 238, 240, .62);
+}
+
+.quizhome-grid {
+  display: flex;
+  gap: 22px;
+  flex-wrap: wrap;
+  justify-content: center;
+  width: 100%;
+  max-width: 860px;
+}
+
+/* ── Module card on the Home screen ──────────────────────────── */
+.module-card {
+  position: relative;
+  width: 380px;
+  max-width: 100%;
+  min-height: 260px;
+  border-radius: 26px;
+  padding: 28px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  overflow: hidden;
+  transition: transform .22s ease, box-shadow .22s ease, border-color .22s ease;
+  text-decoration: none;
+  border: 1px solid rgba(255, 255, 255, .09);
+}
+@media (hover: hover) and (pointer: fine) {
+  .module-card:hover {
+    transform: translateY(-4px);
+    border-color: rgba(217, 255, 99, .5);
+    box-shadow: 0 20px 50px rgba(0, 0, 0, .4);
+  }
+  .module-join--sage:hover {
+    background: #e6ff85;
+  }
+  .module-join--forge:hover {
+    background: rgba(167, 139, 250, .32);
+  }
+}
+.module-card .module-glow {
+  position: absolute;
+  width: 260px;
+  height: 260px;
+  border-radius: 50%;
+  filter: blur(70px);
+  opacity: .28;
+  pointer-events: none;
+}
+.module-card .module-glow--sage {
+  left: -90px;
+  bottom: -110px;
+  background: #d9ff63;
+}
+.module-card .module-glow--forge {
+  right: -90px;
+  top: -110px;
+  background: #a78bfa;
+}
+
+.module-eye {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  margin-bottom: 18px;
+}
+.module-eye svg {
+  color: currentColor;
+}
+.module-card--sage .module-eye { color: #d9ff63; }
+.module-card--forge .module-eye { color: #a78bfa; }
+
+.module-name {
+  font-family: var(--font-display);
+  font-size: clamp(1.7rem, 3.2vw, 2.3rem);
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -.035em;
+  margin: 0 0 10px;
+  color: white;
+}
+.module-desc {
+  font-size: 14px;
+  line-height: 1.6;
+  color: rgba(232, 238, 240, .68);
+  margin: 0 0 22px;
+}
+
+.module-join {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border-radius: 14px;
+  padding: 12px 16px;
+  font-size: 13px;
+  font-weight: 800;
+  margin-top: auto;
+}
+.module-join--sage {
+  color: #12150f;
+  background: #d9ff63;
+}
+.module-join--forge {
+  color: white;
+  background: rgba(167, 139, 250, .2);
+  border: 1px solid rgba(167, 139, 250, .6);
+}
+.module-join svg {
+  flex: none;
+}
+
+.quizhome-foot {
+  margin-top: 40px;
+  font-size: 12px;
+  color: rgba(232, 238, 240, .38);
+  text-align: center;
+  max-width: 560px;
+  line-height: 1.6;
+}
+.quizhome-foot code {
+  background: rgba(255, 255, 255, .08);
+  padding: 2px 6px;
+  border-radius: 6px;
+  font-size: 11px;
+}
+
+/* ── Legal gear row (folded app information panel) ───────────────────── */
+.quiz-legal-row {
+  margin-top: 34px;
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* ── Legal gear: app info / privacy / security / terms (folded HTML) ── */
+.qm-legal-gear {
+  position: fixed;
+  right: 22px;
+  bottom: 22px;
+  z-index: 60;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 999px;
+  border: 1px solid rgba(217, 255, 99, .45);
+  background: rgba(18, 22, 15, .82);
+  color: #d9ff63;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, .45);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  transition: transform .16s ease, background .16s ease;
+}
+.qm-legal-gear:hover { background: rgba(217, 255, 99, .18); }
+.qm-legal-gear:active { transform: scale(.94); }
+
+.qm-legal-trigger { transition: background .16s ease, transform .16s ease; }
+.qm-legal-trigger:hover { background: rgba(217, 255, 99, .16) !important; }
+.qm-legal-trigger:active { transform: scale(.97); }
+
+.qm-legal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(4, 6, 10, .72);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+}
+
+.qm-legal-panel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 720px;
+  max-height: 90vh;
+  max-height: 90dvh;
+  border-radius: 24px;
+  border: 1px solid rgba(255, 255, 255, .12);
+  background: #0d0f18;
+  color: #e8eef0;
+  box-shadow: 0 30px 90px rgba(0, 0, 0, .6);
+  overflow: hidden;
+}
+
+.qm-legal-head {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, .08);
+}
+.qm-legal-title { display: flex; align-items: center; gap: 8px; }
+.qm-legal-title svg { color: #6ee7b7; flex: none; }
+.qm-legal-title h2 { margin: 0; font-size: 1rem; font-weight: 800; letter-spacing: -.01em; color: #fff; }
+
+.qm-legal-close {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .08);
+  color: rgba(255, 255, 255, .72);
+  transition: background .16s ease, color .16s ease;
+}
+.qm-legal-close:hover { background: rgba(255, 255, 255, .16); color: #fff; }
+
+/* Scrollable so every expanded document is fully reachable/visible. */
+.qm-legal-docs {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.qm-legal-doc {
+  border: 1px solid rgba(255, 255, 255, .1);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, .04);
+  padding: 14px 16px;
+}
+.qm-legal-doc > summary {
+  list-style: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-height: 32px;
+  font-size: .95rem;
+  font-weight: 700;
+  color: rgba(255, 255, 255, .88);
+}
+.qm-legal-doc > summary::-webkit-details-marker { display: none; }
+.qm-legal-doc > summary::after {
+  content: "";
+  flex: none;
+  width: 9px;
+  height: 9px;
+  margin-right: 4px;
+  border-right: 2px solid rgba(255, 255, 255, .5);
+  border-bottom: 2px solid rgba(255, 255, 255, .5);
+  transform: rotate(-45deg);
+  transition: transform .16s ease;
+}
+.qm-legal-doc[open] > summary::after { transform: rotate(45deg); }
+
+.qm-legal-doc-body {
+  margin-top: 10px;
+  font-size: 13px;
+  line-height: 1.65;
+  color: rgba(232, 238, 240, .68);
+  word-break: break-word;
+}
+.qm-legal-doc-body p { margin: 0 0 10px; }
+.qm-legal-doc-body p:last-child { margin-bottom: 0; }
+.qm-legal-doc-body ul { margin: 0 0 10px; padding-left: 20px; }
+.qm-legal-doc-body li { margin: 4px 0; }
+.qm-legal-doc-body strong { color: rgba(255, 255, 255, .92); font-weight: 700; }
+.qm-legal-doc-body em {
+  display: block;
+  margin-bottom: 10px;
+  font-size: 12px;
+  font-style: normal;
+  color: rgba(255, 255, 255, .45);
+}
+
+.qm-legal-foot {
+  flex: none;
+  margin: 0;
+  padding: 12px 20px 16px;
+  border-top: 1px solid rgba(255, 255, 255, .08);
+  text-align: center;
+  font-size: 11px;
+  color: rgba(232, 238, 240, .4);
+}

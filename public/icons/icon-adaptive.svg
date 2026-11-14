@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" fill="#4f46e5"/>
+  <text x="256" y="268" font-family="system-ui, sans-serif" font-size="220" font-weight="700" text-anchor="middle" fill="#f7d97e">Q</text>
+  <text x="256" y="288" font-family="system-ui, sans-serif" font-size="140" font-weight="700" text-anchor="middle" fill="#f7d97e">M</text>
+  <text x="256" y="318" font-family="system-ui, sans-serif" font-size="140" font-weight="700" text-anchor="middle" fill="#f7d97e">A</text>
+  <path d="M70 140 L442 140 L442 372 L70 372 Z" fill="#f7d97e" opacity="0.2"/>
+  <circle cx="160" cy="340" r="30" fill="#f7d97e" opacity="0.5"/>
+  <circle cx="352" cy="340" r="30" fill="#f7d97e" opacity="0.5"/>
+</svg>

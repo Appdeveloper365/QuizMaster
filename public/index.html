@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, minimum-scale=1.0, maximum-scale=1.0" />
+  <meta name="theme-color" content="#e0b000" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="description" content="QuizMaster - AI-powered trivia quiz application" />
+  <meta name="mobile-web-app-verbose-status-bar" content="black" />
+  <link rel="manifest" href="/manifest.webmanifest" />
+
+  <!-- Preconnect to CDN endpoints -->
+  <link rel="preconnect" href="https://esm.run" crossorigin="anonymous" />
+  
+  <!-- Security policy -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval' https://esm.run; style-src 'self' 'unsafe-inline'; font-src 'self' data:; connect-src 'self'" />
+
+  <title>QuizMaster - AI Trivia Game</title>
+  
+  <!-- PWA icons -->
+  <link rel="icon" type="image/png" href="/icons/icon-192.png" />
+  <link rel="apple-touch-icon" href="/icons/icon-192.png" />
+</head>
+<body class="antialiased">
+  <div id="root"></div>
+
+  <script type="module" src="/src/index.tsx"></script>
+</body>
+</html>
