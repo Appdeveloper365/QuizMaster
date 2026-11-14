@@ -60,18 +60,18 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  /* Assets: cache-first (stale-while-revalidate flavor). */
+  /* Assets: stale-while-revalidate — serve cached copy immediately, refresh in
+     background so updates propagate without waiting for a cache-version bump. */
   event.respondWith(
-    caches.match(req).then(
-      (hit) =>
-        hit ||
-        fetch(req).then((res) => {
-          if (res.ok) {
-            const copy = res.clone();
-            caches.open(CACHE).then((c) => c.put(req, copy));
-          }
-          return res;
-        }),
-    ),
+    caches.match(req).then((hit) => {
+      const fetchPromise = fetch(req).then((res) => {
+        if (res.ok) {
+          const copy = res.clone();
+          caches.open(CACHE).then((c) => c.put(req, copy));
+        }
+        return res;
+      });
+      return hit || fetchPromise;
+    }),
   );
 });

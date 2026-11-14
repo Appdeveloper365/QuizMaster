@@ -136,6 +136,9 @@ select:focus-visible {
   .module-join--forge:hover {
     background: rgba(167, 139, 250, .32);
   }
+  .module-join--info:hover {
+    background: #a5f3fc;
+  }
 }
 .module-card .module-glow {
   position: absolute;
@@ -156,6 +159,11 @@ select:focus-visible {
   top: -110px;
   background: #a78bfa;
 }
+.module-glow--info {
+  right: -90px;
+  bottom: -110px;
+  background: #67e8f9;
+}
 
 .module-eye {
   display: flex;
@@ -172,6 +180,7 @@ select:focus-visible {
 }
 .module-card--sage .module-eye { color: #d9ff63; }
 .module-card--forge .module-eye { color: #a78bfa; }
+.module-card--info .module-eye { color: #67e8f9; }
 
 .module-name {
   font-family: var(--font-display);
@@ -208,6 +217,10 @@ select:focus-visible {
   color: white;
   background: rgba(167, 139, 250, .2);
   border: 1px solid rgba(167, 139, 250, .6);
+}
+.module-join--info {
+  color: #10131b;
+  background: #67e8f9;
 }
 .module-join svg {
   flex: none;

@@ -381,7 +381,7 @@ export default function App({ onBack }: { onBack?: () => void }) {
             {selected !== null && (
               <div className="mt-4 rounded-2xl bg-[#f1f3ed] p-3 text-sm text-[#596052]">
                 <strong className={correctAnswer ? "text-[#47733c]" : "text-[#9f4d43]"}>{correctAnswer ? "Correct." : "Not quite."}</strong> {question.explanation}
-                {question.sourceUrl && <a href={question.sourceUrl} target="_blank" rel="noreferrer" className="ml-2 inline-flex items-center gap-1 font-bold text-[#66785a]"><ExternalLink className="h-3 w-3" /> Source</a>}
+                {question.sourceUrl && <a href={question.sourceUrl} target="_blank" rel="noopener noreferrer" className="ml-2 inline-flex items-center gap-1 font-bold text-[#66785a]"><ExternalLink className="h-3 w-3" /> Source</a>}
                 <p className="mt-2 text-xs text-[#858a80]">The next question starts automatically after this answer.</p>
               </div>
             )}

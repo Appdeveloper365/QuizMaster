@@ -1,8 +1,9 @@
 import type { GameResult, Question, QuestionHistoryEntry, Settings } from "./types";
 import { kvGet, kvSet } from "./puter";
 
-// NOTE: Settings (including a user-entered OpenRouter key) are stored
-// unencrypted in localStorage — app-scoped on the Android WebView.
+// NOTE: Settings are stored in localStorage, but the OpenRouter key is
+// intentionally excluded — it must live only in memory for the session and
+// be re-entered on reload, so a key never persists to disk unencrypted.
 const S_KEY = "bf_settings_v1";
 const R_KEY = "bf_results_v1";
 const QH_KEY = "bf_question_history_v1";
@@ -17,7 +18,10 @@ export const DEFAULT_SETTINGS: Settings = {
 
 export function loadSettings(): Settings {
   try {
-    return { ...DEFAULT_SETTINGS, ...(JSON.parse(localStorage.getItem(S_KEY) ?? "{}")) };
+    const stored = JSON.parse(localStorage.getItem(S_KEY) ?? "{}") as Partial<Settings>;
+    // Never restore a persisted OpenRouter key — it lives in memory only.
+    const { openrouterKey, ...rest } = stored;
+    return { ...DEFAULT_SETTINGS, ...rest, openrouterKey: "" };
   } catch {
     return DEFAULT_SETTINGS;
   }
@@ -25,7 +29,9 @@ export function loadSettings(): Settings {
 
 export function saveSettings(s: Settings) {
   try {
-    localStorage.setItem(S_KEY, JSON.stringify(s));
+    // Drop the OpenRouter key before persisting — it must not be written to disk.
+    const { openrouterKey, ...rest } = s;
+    localStorage.setItem(S_KEY, JSON.stringify(rest));
   } catch {
     /* noop */
   }

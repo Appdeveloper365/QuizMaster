@@ -187,13 +187,9 @@ export function useAI() {
     facetIndex = 0
   ): Promise<Question> => {
     if (settings.provider === "webllm") {
-      const buffered = currentQuestion();
-      if (buffered) {
-        // A question is already waiting — deliver it instantly and refill.
-        const question = buffered;
-        void advanceToNext();
-        return question;
-      }
+      // A question is already waiting from the relay pipeline — deliver it instantly and refill.
+      const pregenerated = advanceToNext();
+      if (pregenerated) return pregenerated;
 
       // No question ready yet — seed the pipeline with the first question.
       setBusy(true);
@@ -276,7 +272,12 @@ export function useAI() {
         recordQuestionFact(subject, factKey);
         return generated;
       }
-      return await generateOneWithOpenRouter(apiKey, settings.openRouterModel, subject, difficulty, research, exclude, shift, false, steer);
+      const generated = await generateOneWithOpenRouter(apiKey, settings.openRouterModel, subject, difficulty, research, exclude, shift, false, steer);
+      recordPrompt(generated.prompt);
+      const factKey = factKeyForQuestion(subject, generated.options[generated.answer]);
+      generated.factKey = factKey;
+      recordQuestionFact(subject, factKey);
+      return generated;
     } catch (caught) {
       const message = getErrorMessage(caught, "The provider could not generate this question.");
       setError(message);

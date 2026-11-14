@@ -27,38 +27,54 @@ function refererHeader(): Record<string, string> {
   return {};
 }
 
+/** Default ceiling on how long an OpenRouter request may run before aborting.
+ *  Without this a stalled model response can hang the UI indefinitely. */
+const DEFAULT_OPENROUTER_TIMEOUT_MS = 30_000;
+
 export async function openRouterChat(
   apiKey: string,
   model: string,
   messages: OpenRouterChatMsg[],
-  opts: { maxTokens?: number; temperature?: number; signal?: AbortSignal; xTitle?: string } = {},
+  opts: { maxTokens?: number; temperature?: number; signal?: AbortSignal; xTitle?: string; timeoutMs?: number } = {},
 ): Promise<string> {
   const key = apiKey.trim();
   if (!key) throw new Error("Add your OpenRouter API key in Settings (openrouter.ai → Keys).");
   if (!looksLikeOpenRouterKey(key)) throw new Error("That doesn't look like an OpenRouter key (starts with sk-or-v1-).");
 
-  // No timeout — generation waits as long as the model needs. Only the caller can cancel.
   const ctrl = new AbortController();
   const onAbort = () => ctrl.abort();
   opts.signal?.addEventListener("abort", onAbort);
 
+  // Hard timeout so a slow or hung model response cannot block the caller forever.
+  let timeout: ReturnType<typeof setTimeout> | null = null;
+  const timeoutMs = opts.timeoutMs ?? DEFAULT_OPENROUTER_TIMEOUT_MS;
+  const timeoutPromise = new Promise<never>((_, reject) => {
+    timeout = setTimeout(() => {
+      reject(new Error(`OpenRouter request timed out after ${timeoutMs} ms.`));
+      ctrl.abort();
+    }, timeoutMs);
+  });
+
   try {
-    const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-      method: "POST",
-      signal: ctrl.signal,
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${key}`,
-        ...refererHeader(),
-        "X-Title": opts.xTitle ?? "QuizMaster",
-      },
-      body: JSON.stringify({
-        model,
-        messages,
-        max_tokens: opts.maxTokens ?? 900,
-        temperature: opts.temperature ?? 0.7,
+    const res = await Promise.race([
+      fetch("https://openrouter.ai/api/v1/chat/completions", {
+        method: "POST",
+        signal: ctrl.signal,
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${key}`,
+          ...refererHeader(),
+          "X-Title": opts.xTitle ?? "QuizMaster",
+        },
+        body: JSON.stringify({
+          model,
+          messages,
+          max_tokens: opts.maxTokens ?? 900,
+          temperature: opts.temperature ?? 0.7,
+        }),
       }),
-    });
+      timeoutPromise,
+    ]);
     const data = await res.json().catch(() => null);
     if (!res.ok) {
       const msg = data?.error?.message ?? `OpenRouter error ${res.status}`;
@@ -71,6 +87,7 @@ export async function openRouterChat(
     if ((e as { name?: string })?.name === "AbortError") throw new Error("Cancelled.");
     throw e;
   } finally {
+    if (timeout) clearTimeout(timeout);
     opts.signal?.removeEventListener("abort", onAbort);
   }
 }

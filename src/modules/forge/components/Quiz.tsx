@@ -192,7 +192,7 @@ export default function Quiz(p: Props) {
       {showSources && p.sources.length > 0 && (
         <div className="anim-slide-up mb-3 flex flex-wrap gap-1.5">
           {p.sources.map((s) => (
-            <a key={s.url} href={s.url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 rounded-full bg-emerald-400/10 px-2.5 py-1 text-[11px] font-semibold text-emerald-200 ring-1 ring-emerald-400/25">
+            <a key={s.url} href={s.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 rounded-full bg-emerald-400/10 px-2.5 py-1 text-[11px] font-semibold text-emerald-200 ring-1 ring-emerald-400/25">
               <ExternalLink className="h-3 w-3" /> {s.title}
             </a>
           ))}
@@ -271,7 +271,7 @@ export default function Quiz(p: Props) {
             <span className="min-w-0">
               {q.explanation}
               {q.sourceUrl && (
-                <a href={q.sourceUrl} target="_blank" rel="noreferrer" className="ml-1.5 inline-flex items-center gap-1 text-[12px] font-bold text-emerald-300">
+                <a href={q.sourceUrl} target="_blank" rel="noopener noreferrer" className="ml-1.5 inline-flex items-center gap-1 text-[12px] font-bold text-emerald-300">
                   <ExternalLink className="h-3 w-3" /> source
                 </a>
               )}

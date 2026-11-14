@@ -1,5 +1,4 @@
-import { Bot, Sparkles } from "lucide-react";
-import LegalGear from "../components/LegalGear";
+import { Bot, Info, Sparkles } from "lucide-react";
 
 const MODULES = [
   {
@@ -18,6 +17,14 @@ const MODULES = [
     join: "Start forging",
     theme: "forge",
   },
+  {
+    id: "info",
+    name: "App Info",
+    eye: "About & Policies",
+    desc: "What QuizMaster is, how your data is handled, our security posture, and the terms of use.",
+    join: "Read info",
+    theme: "info",
+  },
 ] as const;
 
 interface ModuleCardProps {
@@ -27,7 +34,7 @@ interface ModuleCardProps {
 
 function ModuleCard({ module, onEnter }: ModuleCardProps) {
   const theme = module.theme;
-  const Icon = theme === "sage" ? Bot : Sparkles;
+  const Icon = theme === "sage" ? Bot : theme === "forge" ? Sparkles : Info;
   return (
     <button
       type="button"
@@ -78,8 +85,6 @@ export function Home({ onEnter }: { onEnter: (id: string) => void }) {
       <p className="quizhome-foot">
         Each module shares the same QuizMaster package but loads its own styles and logic in isolation. Select a module to launch it.
       </p>
-
-      <LegalGear />
     </div>
   );
 }
