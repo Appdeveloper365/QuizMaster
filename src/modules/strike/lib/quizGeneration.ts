@@ -118,7 +118,10 @@ export function createSingleQuestionMessages(
   reinforceTopic = false,
   steer: QuestionSteer = {}
 ) {
-  const facet = research.passages[((facetIndex % research.passages.length) + research.passages.length) % research.passages.length];
+  const facet =
+    research.passages.length > 0
+      ? research.passages[((facetIndex % research.passages.length) + research.passages.length) % research.passages.length]
+      : { title: subject, text: "", url: "" };
   const relatedHint = research.relatedTerms.filter((term) => term.toLocaleLowerCase() !== subject.toLocaleLowerCase()).slice(0, 12).join(", ");
   const previous = excludePrompts.slice(-6).map((prompt) => `- ${prompt}`).join("\n");
 

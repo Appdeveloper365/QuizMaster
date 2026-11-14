@@ -60,6 +60,7 @@ let nextSlot: RelaySlot = { question: null, model: "", status: "empty", error: n
 
 let pipelineSubject = "";
 let pipelineDifficulty: Difficulty | null = null;
+let pipelinePrimaryModel = ""; // user-selected model for pipeline generation
 let cachedResearch: InternetResearch | null = null;
 let excludePrompts: string[] = [];
 let facetIndex = 0;
@@ -111,12 +112,14 @@ export function configureRelayPipeline(params: Omit<RelayParams, "research"> & {
     resetRelayPipeline();
     pipelineSubject = key;
     pipelineDifficulty = params.difficulty;
+    pipelinePrimaryModel = params.primaryModel;
     cachedResearch = params.research ?? null;
     excludePrompts = [...new Set([...params.excludePrompts, ...loadAskedPrompts()])];
     facetIndex = 0;
     modelTurn = 0;
   } else {
     cachedResearch = params.research ?? cachedResearch;
+    pipelinePrimaryModel = params.primaryModel ?? pipelinePrimaryModel;
     // Merge in any new excludes without losing existing ones.
     excludePrompts = [...new Set([...excludePrompts, ...params.excludePrompts])];
   }
@@ -222,12 +225,7 @@ async function generateNextSlot(): Promise<void> {
 
 /** Resolve the model set for the pipeline (primary + fast companion + optional third). */
 async function resolvePipelineModels(): Promise<string[]> {
-  const wanted = [...new Set([WEBLLM_FAST_MODEL, PIPELINE_THIRD_MODEL])];
-  // Always include the user's primary model if it's different.
-  if (pipelineSubject && pipelineDifficulty) {
-    // primaryModel is stored per-session via configureRelayPipeline; we need it.
-    // It's not stored on the pipeline, so we look at what's loaded.
-  }
+  const wanted = [...new Set([pipelinePrimaryModel, WEBLLM_FAST_MODEL, PIPELINE_THIRD_MODEL])].filter(Boolean);
   const loaded = loadedWebLLMModels();
   const available = wanted.filter((m) => loaded.includes(m));
   // If only one model is loaded, just use it for both slots (strict alternation
