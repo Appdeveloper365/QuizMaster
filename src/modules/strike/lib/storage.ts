@@ -21,7 +21,7 @@ export const DEFAULT_PROFILE: Profile = {
 
 export const DEFAULT_AI_SETTINGS: AISettings = {
   provider: "webllm",
-  webllmModel: "Qwen3.5-4B-q4f16_1-MLC",
+  webllmModel: "Llama-3.2-3B-Instruct-q4f16_1-MLC",
   openRouterModel: "qwen/qwen3.5-9b",
   autoPreload: true,
   rememberKey: false,

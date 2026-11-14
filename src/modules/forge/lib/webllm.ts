@@ -48,11 +48,11 @@ export const MODELS: ModelSpec[] = [
   },
   {
     id: "Llama-3.2-3B-Instruct-q4f16_1-MLC",
-    label: "Llama 3.1 · 3B Smart",
-    family: "Llama 3.1",
+    label: "Llama 3.2 · 3B Smart",
+    family: "Llama 3.2",
     sizeMB: 1700,
-    tier: "secondary",
-    blurb: "Deeper quiz generation + trickier explanations.",
+    tier: "primary",
+    blurb: "New default — deeper quiz generation + trickier explanations.",
   },
   {
     id: "Qwen2.5-1.5B-Instruct-q4f16_1-MLC",

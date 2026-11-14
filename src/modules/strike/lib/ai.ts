@@ -8,9 +8,10 @@ import { openRouterChat } from "@/shared/openrouter";
 export { signInToPuter, signOutOfPuter, getPuterUser } from "@/shared/puter";
 
 export const WEBLLM_MODELS = [
-  { id: "Qwen3.5-4B-q4f16_1-MLC", name: "Qwen3.5 4B", note: "Stronger reasoning · about 3.9 GB GPU memory", badge: "Strong default" },
+  { id: "Qwen3.5-4B-q4f16_1-MLC", name: "Qwen3.5 4B", note: "Stronger reasoning · about 3.9 GB GPU memory", badge: "Strong" },
   { id: "Qwen3.5-2B-q4f16_1-MLC", name: "Qwen3.5 2B", note: "Balanced speed and quality · about 2.2 GB GPU memory", badge: "Balanced" },
   { id: "Qwen3.5-0.8B-q4f16_1-MLC", name: "Qwen3.5 0.8B", note: "Fastest · about 1.6 GB GPU memory", badge: "Low memory" },
+  { id: "Llama-3.2-3B-Instruct-q4f16_1-MLC", name: "Llama 3.2 3B", note: "Smaller download · balanced speed and quality · about 2 GB GPU memory", badge: "New default" },
   { id: "Llama-3.1-8B-Instruct-q4f16_1-MLC", name: "Llama 3.1 8B", note: "High capability · about 5.0 GB GPU memory · 4K context", badge: "Large" },
 ];
 
