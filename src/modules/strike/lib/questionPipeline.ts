@@ -237,11 +237,11 @@ async function resolvePipelineModels(): Promise<string[]> {
 
 /** Seed the pipeline: generate the first question immediately with the primary model.
  *  Call this when starting a new subject. Returns the first question. */
-export async function seedRelayPipeline(params: RelayParams): Promise<Question | null> {
+export async function seedRelayPipeline(params: RelayParams): Promise<Question> {
   configureRelayPipeline(params);
 
   const models = await resolvePipelineModels();
-  if (models.length === 0) return null;
+  if (models.length === 0) throw new Error("No WebLLM models loaded.");
 
   const primaryModel = params.primaryModel;
   const model = models.includes(primaryModel) ? primaryModel : models[0];
@@ -270,6 +270,7 @@ export async function seedRelayPipeline(params: RelayParams): Promise<Question |
   };
 
   let question: Question | null = null;
+  let lastError: Error | null = null;
   for (let attemptIndex = 0; attemptIndex < 2 && !question; attemptIndex += 1) {
     try {
       const generated = await generateOneWithWebLLM(
@@ -279,14 +280,18 @@ export async function seedRelayPipeline(params: RelayParams): Promise<Question |
         cachedResearch!,
         exclude,
         shift + attemptIndex,
-        false,
+        attemptIndex === 1, // reinforceTopic on the second attempt — tell the model to self-correct
         { ...steer, answerHint: (shift + attemptIndex) % 4 },
       );
       question = generated;
-    } catch { /* try again */ }
+    } catch (caught) {
+      lastError = caught instanceof Error ? caught : new Error(String(caught));
+    }
   }
 
-  if (!question) return null;
+  if (!question) {
+    throw lastError ?? new Error("The local model could not generate a question.");
+  }
 
   recordPrompt(question.prompt);
   const factKey = factKeyForQuestion(params.subject, question.options[question.answer]);

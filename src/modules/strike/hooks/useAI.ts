@@ -236,7 +236,6 @@ export function useAI() {
             primaryModel: settings.webllmModel,
             research,
           });
-          if (!question) throw new Error("The local model could not generate a question.");
           return question;
         }
       } catch (caught) {
