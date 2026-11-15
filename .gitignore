@@ -17,3 +17,12 @@ public/models/
 # Logs
 *.log
 npm-debug.log*
+# Release signing
+release.keystore
+.keystore-password.local
+android/keystore.properties
+release-cert.pem
+quizmaster-verify.apk
+# Loose store assets (committed under store-assets/ instead)
+app-icon-512.png
+feature-graphic-1024x500.png

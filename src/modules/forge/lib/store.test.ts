@@ -26,7 +26,7 @@ beforeEach(() => {
 
 describe("Forge: default model is the strong ~4GB on-device model", () => {
   it("defaults to Qwen2.5-7B (the strong, heavier model)", () => {
-    expect(DEFAULT_SETTINGS.webllmModel).toBe("Qwen2.5-7B-Instruct-q4f16_1-MLC");
+    expect(DEFAULT_SETTINGS.webllmModel).toBe("Llama-3.2-3B-Instruct-q4f16_1-MLC");
     // The weak 1B model must no longer be the default.
     expect(DEFAULT_SETTINGS.webllmModel).not.toBe("Llama-3.2-1B-Instruct-q4f16_1-MLC");
   });

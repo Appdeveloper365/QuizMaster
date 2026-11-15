@@ -194,7 +194,7 @@ export function applyAnswer(session: GameSession, option: number): GameSession {
       shieldArmed = false;
       blocked = true;
       next.event = overcharged ? "Shield absorbed the overcharged strike" : "Shield absorbed the counterattack";
-    } else if (session.mode !== "blitz") {
+    } else if (session.mode !== "blitz" && session.mode !== "custom") {
       const damage = overcharged ? 2 : 1;
       hearts = Math.max(0, hearts - damage);
       if (overcharged) next.event = "Iron Sentinel landed an overcharged strike (−2 shields)";

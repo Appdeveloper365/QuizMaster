@@ -12,7 +12,7 @@ export const DEFAULT_SETTINGS: Settings = {
   provider: "webllm",
   openrouterKey: "",
   openrouterModel: "openrouter/free",
-  webllmModel: "Qwen2.5-7B-Instruct-q4f16_1-MLC",
+  webllmModel: "Llama-3.2-3B-Instruct-q4f16_1-MLC",
   sound: true,
 };
 
@@ -21,6 +21,11 @@ export function loadSettings(): Settings {
     const stored = JSON.parse(localStorage.getItem(S_KEY) ?? "{}") as Partial<Settings>;
     // Never restore a persisted OpenRouter key — it lives in memory only.
     const { openrouterKey, ...rest } = stored;
+    // Migrate the old 4.4 GB non-bundled default left in returning users'
+    // settings — bundled models load instantly instead.
+    if (rest.webllmModel === "Qwen2.5-7B-Instruct-q4f16_1-MLC") {
+      rest.webllmModel = DEFAULT_SETTINGS.webllmModel;
+    }
     return { ...DEFAULT_SETTINGS, ...rest, openrouterKey: "" };
   } catch {
     return DEFAULT_SETTINGS;

@@ -229,7 +229,7 @@ export class QuizSession {
     const out: Question[] = [];
     while (out.length < n && this.buffer.length) {
       const q = this.buffer.shift()!;
-      this.commit(q, `${q.sourceTitle ?? ""}|${normalizeEvidence(q.sourceSentence ?? "")}`);
+      this.record(q, `${q.sourceTitle ?? ""}|${normalizeEvidence(q.sourceSentence ?? "")}`);
       out.push(q);
     }
     return out;
@@ -257,7 +257,7 @@ export class QuizSession {
       this.generating = true;
       try {
         const q = await this.generateOneSynchronous(k, topic, index);
-        if (q) this.commit(q, `${q.sourceTitle ?? ""}|${normalizeEvidence(q.sourceSentence ?? "")}`);
+        if (q) this.record(q, `${q.sourceTitle ?? ""}|${normalizeEvidence(q.sourceSentence ?? "")}`);
         return q;
       } finally {
         this.generating = false;
@@ -305,7 +305,8 @@ export class QuizSession {
     const engines = makeRunners(this.ctx).filter(
       (r) => r.available && (r.id !== "webllm" || !!webllm.readyModelId)
     );
-    if (!engines.length) return null;
+    // No provider ready — skip straight to the verified extractive fallback
+    // instead of failing the question outright.
     const focusSource = k.sources[index % k.sources.length];
     const sys = buildSystemOne(topic, this.difficulty, k);
     for (const r of engines) {
@@ -341,15 +342,19 @@ export class QuizSession {
     return q;
   }
 
-  private commit(q: Question, factKey: string) {
+  /** Record a question as served: dedup memory + bookkeeping, without buffering. */
+  private record(q: Question, factKey: string) {
     this.questions.push(q);
     this.asked.push(q.q);
     this.usedFacts.add(factKey);
     this.usedQuestionKeys.add(normalizeEvidence(q.q));
     recordAskedPrompt(q.q);
-    // Persist to the durable question memory so a fresh session never reuses
-    // this question or its source fact, even after an app restart.
     recordQuestion({ topic: this.category, q: q.q, factKey });
+  }
+
+  /** Buffer a batch-generated question for the UI (pushed exactly once). */
+  private commit(q: Question, factKey: string) {
+    this.record(q, factKey);
     this.buffer.push(q);
   }
 

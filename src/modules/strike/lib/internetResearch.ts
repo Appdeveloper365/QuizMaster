@@ -296,14 +296,53 @@ function wikiUrl(title: string): string {
   return `https://en.wikipedia.org/wiki/${encodeURIComponent(title.replace(/ /g, "_"))}`;
 }
 
+/** Exact-title lookup used when search comes up empty or fails. The search
+ *  generator can return nothing for perfectly valid subjects (e.g. "Solar
+ *  System") or be temporarily rate-limited; a direct title query is far more
+ *  reliable and still gives us the article's lead section. */
+async function fetchWikipediaByTitle(title: string): Promise<WikiSearchPage | null> {
+  const params = new URLSearchParams({
+    action: "query",
+    titles: title,
+    prop: "extracts|description|info",
+    inprop: "url",
+    explaintext: "1",
+    exintro: "1",
+    exchars: "1100",
+    format: "json",
+    origin: "*",
+  });
+  try {
+    const response = await fetch(`https://en.wikipedia.org/w/api.php?${params.toString()}`);
+    if (!response.ok) return null;
+    const data = (await response.json()) as { query?: { pages?: Record<string, WikiSearchPage> } };
+    const page = Object.values(data.query?.pages ?? {}).find(
+      (candidate) => Boolean(candidate.extract?.trim()) && !isDisambiguation(candidate.title, candidate.extract ?? "")
+    );
+    return page && typeof page.pageid === "number" ? page : null;
+  } catch {
+    return null;
+  }
+}
+
 /** Encyclopedia pool: lead article in full + the two next-best articles in full. */
 async function fetchWikipediaBundle(subject: string): Promise<SourceBundle> {
   let pages: WikiSearchPage[] = [];
   try {
     pages = await searchWikipedia(subject);
-    if (pages.length === 0) pages = await searchWikipedia(subject, "text");
   } catch {
-    return EMPTY_BUNDLE;
+    pages = [];
+  }
+  if (pages.length === 0) {
+    try {
+      pages = await searchWikipedia(subject, "text");
+    } catch {
+      pages = [];
+    }
+  }
+  if (pages.length === 0) {
+    const direct = await fetchWikipediaByTitle(subject);
+    if (direct) pages = [direct];
   }
   if (pages.length === 0) return EMPTY_BUNDLE;
 
@@ -311,13 +350,13 @@ async function fetchWikipediaBundle(subject: string): Promise<SourceBundle> {
   // parallel sweep — full bodies give the model real breadth instead of three
   // rewordings of the same intro.
   const bodies = await Promise.allSettled(pages.slice(0, 3).map((page) => fetchFullWikipediaArticle(page.pageid)));
-  const bodyFor = (index: number) => (bodies[index].status === "fulfilled" ? bodies[index].value : "");
+  const bodyFor = (index: number) => (bodies[index]?.status === "fulfilled" ? bodies[index].value : "");
 
   const sources: InternetSource[] = [];
   const passages: ResearchPassage[] = [];
   const relatedTerms: string[] = [];
 
-  pages.forEach((page, index) => {
+  pages.slice(0, 3).forEach((page, index) => {
     const url = page.fullurl || wikiUrl(page.title);
     const makePassage = (): ResearchPassage | null => {
       const fullBody = bodyFor(index);
@@ -629,12 +668,19 @@ export async function fetchInternetResearch(subject: string): Promise<InternetRe
     context,
   };
 
-  if (researchCache.size >= RESEARCH_CACHE_LIMIT) {
-    for (const key of researchCache.keys()) {
-      researchCache.delete(key);
-      break;
+  // Cache only results that include an encyclopedia article. A dictionary-only
+  // result is a degraded fallback: caching it would pin the whole session to a
+  // one-line definition and make every generated question sound like a
+  // vocabulary quiz. Re-fetching gives the next attempt a chance at Wikipedia.
+  const hasEncyclopediaPassage = passages.some((passage) => passage.via === "Wikipedia");
+  if (hasEncyclopediaPassage) {
+    if (researchCache.size >= RESEARCH_CACHE_LIMIT) {
+      for (const key of researchCache.keys()) {
+        researchCache.delete(key);
+        break;
+      }
     }
+    researchCache.set(cacheKey, research);
   }
-  researchCache.set(cacheKey, research);
   return research;
 }

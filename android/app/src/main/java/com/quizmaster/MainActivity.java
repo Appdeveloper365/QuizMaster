@@ -1,4 +1,4 @@
-package com.quizmaster.arena;
+package com.quizmaster;
 
 import com.getcapacitor.BridgeActivity;
 

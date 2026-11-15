@@ -46,9 +46,11 @@ export function getErrorMessage(caught: unknown, fallback: string): string {
 
 let probedCacheBackend: "cache" | "indexeddb" | null = null;
 
-// Some Android WebViews expose `caches` but fail Cache.add/put with
-// "Unexpected internal error" (quota/opaque-response restrictions).
-// Probe with a real write and fall back to IndexedDB when it fails.
+// Probe with a real write; fall back to IndexedDB when the Cache API fails
+// (some Android WebViews expose `caches` but throw "Unexpected internal
+// error" on put). Hugging Face artifacts are CORS-enabled, not opaque, so
+// Cache Storage works there — and unlike IndexedDB it has no ~128MB
+// per-record limit, which the >190MB params shard requires.
 export async function getCacheBackend(): Promise<"cache" | "indexeddb"> {
   if (probedCacheBackend) return probedCacheBackend;
   // Default to IndexedDB. The Cache Storage API can appear to work (probe put/
@@ -64,8 +66,13 @@ export async function getCacheBackend(): Promise<"cache" | "indexeddb"> {
     const request = new Request("https://sagestrike.invalid/probe");
     await probe.put(request, new Response("ok"));
     await probe.delete(request);
-    // Probe passed, but prefer IndexedDB unless the caller explicitly opts in.
-    probedCacheBackend = "indexeddb";
+    // Prefer the Cache API: IndexedDB in Chromium aborts writes of records
+    // larger than ~128MB (WebLLM models ship a >190MB params shard, and the
+    // aborted transaction never settles, permanently stalling model load).
+    // Cache API streams to disk with no per-record limit, and Hugging Face
+    // serves CORS-enabled (non-opaque) artifacts, so cache.add/put work.
+    // Engine creation falls back to IndexedDB automatically on failure.
+    probedCacheBackend = "cache";
   } catch {
     probedCacheBackend = "indexeddb";
   }

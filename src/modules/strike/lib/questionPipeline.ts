@@ -269,7 +269,9 @@ export async function seedRelayPipeline(params: RelayParams): Promise<Question> 
 
   let question: Question | null = null;
   let lastError: Error | null = null;
-  for (let attemptIndex = 0; attemptIndex < 2 && !question; attemptIndex += 1) {
+  // Three attempts: each one uses the next research facet and aspect, so a
+  // single bad passage or model slip does not kill the whole generation.
+  for (let attemptIndex = 0; attemptIndex < 3 && !question; attemptIndex += 1) {
     try {
       const generated = await generateOneWithWebLLM(
         model,
@@ -278,7 +280,7 @@ export async function seedRelayPipeline(params: RelayParams): Promise<Question> 
         cachedResearch!,
         exclude,
         shift + attemptIndex,
-        attemptIndex === 1, // reinforceTopic on the second attempt — tell the model to self-correct
+        attemptIndex >= 1, // reinforceTopic on retries — tell the model to self-correct
         { ...steer, answerHint: (shift + attemptIndex) % 4 },
       );
       question = generated;

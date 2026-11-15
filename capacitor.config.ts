@@ -1,7 +1,7 @@
 import type { CapacitorConfig } from "@capacitor/cli";
 
 const config: CapacitorConfig = {
-  appId: "com.quizmaster.arena",
+  appId: "com.quizmaster",
   appName: "QuizMaster",
   webDir: "dist",
   server: {
